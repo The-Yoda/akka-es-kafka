@@ -26,8 +26,7 @@ class EsProxy extends ActorProcessor[Model] {
       if (data.isFailure) println("FAILURE :: " + data.failed)
       else {
         val msg = data.get
-        msg.setOptype(optype)
-        //        context.actorOf(Props(classOf[EsStorage], self)) ! Message(getId, optype, msg)
+        context.actorOf(Props(classOf[EsStorage], self)) ! msg
       }
 
     case OnError(err: Exception) =>
@@ -38,7 +37,7 @@ class EsProxy extends ActorProcessor[Model] {
 
     case msg: Model =>
       val content = gen(msg.getContent())
-      if (as[List[Any]](content.getFailed()).size > 0)
+      if (bool(content.hasFailed()))
         requestStrategy.breaker.withCircuitBreaker(Future(throw new Exception("FAIL")))
       if (isActive && totalDemand > 0)
         onNext(content)
