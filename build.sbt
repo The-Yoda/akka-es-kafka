@@ -11,6 +11,7 @@ val akkaVersion = "2.3.12"
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor" % akkaVersion,
   "com.typesafe.akka" %% "akka-contrib" % akkaVersion,
+  "org.json4s" %% "json4s-jackson" % "3.2.11",
   "com.typesafe.akka" %% "akka-testkit" % akkaVersion % "test",
   "org.scalatest" %% "scalatest" % "2.2.1" % "test",
   "com.typesafe.akka" %% "akka-stream-experimental" % "1.0-RC4",
