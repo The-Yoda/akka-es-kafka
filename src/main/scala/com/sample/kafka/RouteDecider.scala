@@ -35,7 +35,7 @@ class RouteDecider[A] extends FlexiRoute[A, ResultShape[A]](
       State[Any](DemandFromAll(p.ack, p.err)) {
         (ctx, _, element) =>
           //Add route logic on input element
-          if (as[List[Any]](gen(element).getFailed()).size == 0)
+          if (bool((gen(element).hasFailed())))
             ctx.emit(p.ack)(element)
           else
             ctx.emit(p.err)(element)
