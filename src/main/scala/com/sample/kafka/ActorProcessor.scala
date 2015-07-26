@@ -23,22 +23,22 @@ trait ActorProcessor[T] extends ActorSubscriber with ActorPublisher[T] {
       maxFailures = 3,
       callTimeout = 10.seconds,
       resetTimeout = 10.seconds)
+
+  // request demand of 0 when circuit is open from upstream
   breaker.onOpen({
     updateStates(true, false, false)
     request(requestStrategy.requestDemand(remainingRequested))
   })
+
   breaker.onClose(updateStates(false, true, false))
+
+  // request demand of 1 when circuit is open from upstream
   breaker.onHalfOpen({
     updateStates(false, false, true)
-    val x = requestStrategy.requestDemand(remainingRequested)
-    println(x)
-    request(x)
+    request(requestStrategy.requestDemand(remainingRequested))
   })
 
   def updateStates(isOpen: Boolean, isClosed: Boolean, isHalfOpen: Boolean) = {
-    if (isOpen) println("ON open")
-    if (isHalfOpen) println("In Half open")
-    if (isClosed) println("In closed state")
     isCircuitOpen = isOpen
     isCircuitClosed = isClosed
     isCircuitHalfOpen = isHalfOpen
