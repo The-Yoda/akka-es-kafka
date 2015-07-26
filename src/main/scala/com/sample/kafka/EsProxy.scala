@@ -15,6 +15,7 @@ import akka.pattern.CircuitBreaker
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.Future
 import com.sample.base.Model
+import akka.stream.actor.ActorPublisherMessage
 
 class EsProxy extends ActorProcessor[Model] {
 
@@ -22,7 +23,6 @@ class EsProxy extends ActorProcessor[Model] {
 
   def receive = {
     case OnNext(data: Try[Model]) =>
-      val optype = "add"
       if (data.isFailure) println("FAILURE :: " + data.failed)
       else {
         val msg = data.get
@@ -35,10 +35,15 @@ class EsProxy extends ActorProcessor[Model] {
     case OnComplete =>
       context.stop(self)
 
+    case ActorPublisherMessage.Request(x) => println("Demand : " + x)
+    case ActorPublisherMessage.Cancel | ActorPublisherMessage.SubscriptionTimeoutExceeded =>
+      context.stop(self)
+
     case msg: Model =>
       val content = gen(msg.getContent())
       if (bool(content.hasFailed()))
-        requestStrategy.breaker.withCircuitBreaker(Future(throw new Exception("FAIL")))
+        breaker.withCircuitBreaker(Future(throw new Exception("FAIL")))
+      else breaker.withCircuitBreaker(Future(true))
       if (isActive && totalDemand > 0)
         onNext(content)
       println("In response : " + msg)
