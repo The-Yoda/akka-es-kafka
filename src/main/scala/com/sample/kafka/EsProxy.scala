@@ -44,8 +44,8 @@ class EsProxy extends ActorProcessor[Model] {
       if (bool(content.hasFailed()))
         breaker.withCircuitBreaker(Future(throw new Exception("FAIL")))
       else breaker.withCircuitBreaker(Future(true))
-      if (isActive && totalDemand > 0)
-        onNext(content)
+      
+      if (isActive && totalDemand > 0) onNext(content)
       println("In response : " + msg)
   }
 }
