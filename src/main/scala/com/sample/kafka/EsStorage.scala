@@ -9,7 +9,9 @@ class EsStorage(origin: ActorRef) extends Actor with ActorLogging {
 
   def receive = {
     case msg: Model =>
-      msg.setContent(new Model(Map("failed" -> true)))
+      if (!bool(msg.hasReqContext()))
+        msg.setContent(new Model(Map("failed" -> true)))
+      else msg.setContent(new Model(Map("success" -> true)))
       origin ! msg
   }
 }
