@@ -40,26 +40,24 @@ class KafkaEsFlow extends Actor with ActorLogging {
     case "start" =>
       initKafka
       val topic = "sample"
-      val group = topic + "group"
       val esActor = system.actorOf(Props(classOf[EsProxy]))
-      getPublisherFlow(Source(ActorPublisher[Model](esActor)), topic, group).run()
-      getConsumerFlow(Sink(ActorSubscriber[Try[Model]](esActor)), topic, group).run()
+
+      val processorSink = Sink(ActorSubscriber[Try[Model]](esActor))
+      val processorSource = Source(ActorPublisher[Model](esActor))
+      val kafkaConsumer = Source(Kafka.kafka.consume(topic, topic + "group", new StringDecoder()))
+      getFlow(kafkaConsumer, processorSink, processorSource, topic).run()
   }
 
-  def getConsumerFlow(sink: Sink[Try[Model], Unit], topic: String, group: String) = {
-    val kafkaConsumer = Source(Kafka.kafka.consume(topic, topic + "group", new StringDecoder()))
+  def getFlow(source: Source[String, Unit], pSink: Sink[Try[Model], Unit], pSource: Source[Model, Unit], topic: String) = {
     val flow = Flow[String].map { elem => Try(JsonConverter.convert(elem.toString())) }
-    kafkaConsumer.via(flow).to(sink)
-  }
-
-  def getPublisherFlow(source: Source[Model, Unit], topic: String, group: String) = {
-    val ackQueue = Sink(Kafka.kafka.publish("ack" + topic, group, new StringEncoder()))
-    val errorQueue = Sink(Kafka.kafka.publish("error" + topic, group, new StringEncoder()))
+    val ackQueue = Sink(Kafka.kafka.publish("ack" + topic, getId, new StringEncoder()))
+    val errorQueue = Sink(Kafka.kafka.publish("error" + topic, getId, new StringEncoder()))
 
     FlowGraph.closed() { implicit builder: FlowGraph.Builder[Unit] =>
       import FlowGraph.Implicits._
       val routeDecider = builder.add(new RouteDecider[Model])
-      source ~> routeDecider.in
+      source ~> flow ~> pSink
+      pSource ~> routeDecider.in
       routeDecider.ack.map { gen => JsonConverter.convert(gen) } ~> ackQueue
       routeDecider.err.map { gen => JsonConverter.convert(gen) } ~> errorQueue
     }
