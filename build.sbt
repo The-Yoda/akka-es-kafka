@@ -6,7 +6,7 @@ scalaVersion in ThisBuild := "2.11.7"
 
 version in ThisBuild := "0.1.0-SNAPSHOT"
 
-val akkaVersion = "2.3.12"
+val akkaVersion = "2.4.0"
 
 resolvers ++= Seq(
   "public snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"
@@ -18,7 +18,8 @@ libraryDependencies ++= Seq(
   "org.json4s" %% "json4s-jackson" % "3.2.11",
   "com.typesafe.akka" %% "akka-testkit" % akkaVersion % "test",
   "org.scalatest" %% "scalatest" % "2.2.1" % "test",
-  "com.typesafe.akka" %% "akka-stream-experimental" % "1.0-RC4",
-  "com.softwaremill" %% "reactive-kafka" % "0.8.0-SNAPSHOT",
-  "org.apache.kafka" %% "kafka" % "0.8.2.1"
+  "com.typesafe.akka" %% "akka-stream-experimental" % "1.0",
+  "org.elasticsearch" % "elasticsearch" % "1.7.2",
+  "com.softwaremill.reactivekafka" %% "reactive-kafka-core" % "0.8.2",
+  "org.apache.kafka" %% "kafka" % "0.8.2.2"
 )
