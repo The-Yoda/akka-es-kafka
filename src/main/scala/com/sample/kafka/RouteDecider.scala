@@ -1,4 +1,4 @@
-package com.sample.kafka
+package com.sample.kafka2es
 
 import akka.stream.Attributes
 import akka.stream.FanOutShape
