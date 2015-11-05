@@ -31,8 +31,20 @@ case class Model(mData: Map[String, Any] = Map()) extends Dynamic {
     }
   }
 
+  /**
+   * Gets an element using `x.element`.
+   * Allows to write field accessors: foo.bar
+   */
+  def selectDynamic(fieldName: String) = get(fieldName)
+
+  /**
+   * Sets an element using `x.element = value`
+   * Allows to write field updates: foo.bar = 0
+   */
+  def updateDynamic(fieldName: String)(value: Any) = set(fieldName, value)
+
   def get(fieldName: String): Any = {
-    data.getOrElse(fieldName, None)
+    data.getOrElse(fieldName.toLowerCase, None)
   }
 
   def del(fieldName: String) {
@@ -53,7 +65,7 @@ case class Model(mData: Map[String, Any] = Map()) extends Dynamic {
   }
 
   def set(fieldName: String, value: Any) {
-    data.put(fieldName, setter.apply(value))
+    data.put(fieldName.toLowerCase, setter.apply(value))
   }
 
   def isEmpty = data.isEmpty
@@ -62,7 +74,7 @@ case class Model(mData: Map[String, Any] = Map()) extends Dynamic {
 
   def has(key: String): Boolean = data.contains(key.toLowerCase)
 
-  mData foreach { case (key, value) => this.set(key.toLowerCase, value) }
+  mData foreach { case (key, value) => this.set(key, value) }
 
   def asMap(): Map[String, Any] = {
     data.mapValues { element => convert(element) }.toMap
@@ -77,7 +89,7 @@ case class Model(mData: Map[String, Any] = Map()) extends Dynamic {
   }
 
   def +(model: Model): Model = {
-    model.asMap foreach { case (key, value) => this.set(key.toLowerCase, value) }
+    model.asMap foreach { case (key, value) => this.set(key, value) }
     this
   }
 
